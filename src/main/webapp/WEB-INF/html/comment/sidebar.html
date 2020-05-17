@@ -1,0 +1,163 @@
+
+<div id="menu">
+    <div class="sidebar-shortcuts" id="sidebar-shortcuts">
+        <div class="sidebar-shortcuts-large" id="sidebar-shortcuts-large">
+            <button class="btn btn-success">
+                <i class="ace-icon fa fa-signal"></i>
+            </button>
+
+            <button class="btn btn-info">
+                <i class="ace-icon fa fa-pencil"></i>
+            </button>
+
+            <button class="btn btn-warning">
+                <i class="ace-icon fa fa-users"></i>
+            </button>
+
+            <button class="btn btn-danger">
+                <i class="ace-icon fa fa-cogs"></i>
+            </button>
+            <div id="ztree"><!--用于挂权限树--></div>
+        </div>
+
+        <div class="sidebar-shortcuts-mini" id="sidebar-shortcuts-mini">
+            <span class="btn btn-success"></span>
+
+            <span class="btn btn-info"></span>
+
+            <span class="btn btn-warning"></span>
+
+            <span class="btn btn-danger"></span>
+        </div>
+    </div><!-- /.sidebar-shortcuts -->
+
+    <ul class="nav nav-list" id="sidebar-menu">
+        <li data-level="1" v-for="(resource,index) in resources" @click="changeArrow(resource,index)">
+            <a
+                    href="javascript:void(0);" class="dropdown-toggle"
+                    haschild="true"
+            >
+                <i class="menu-icon " :class="resource.icon"></i>
+                <span class="menu-text"
+                      style="vertical-align: middle;"
+                > {{resource.name}} </span>
+                <!--<b class="arrow " :class="index==currIndex?'fa fa-angle-up':'fa fa-angle-down'"></b>-->
+                <b class="arrow " :class="resource.arrow=='up'?'fa fa-angle-up':'fa fa-angle-down'"></b>
+            </a>
+            <b class="arrow"></b>
+            <ul class="submenu nav-hide" style="display:none;" v-if="resource.children!=undefined&&resource.children.length>0" @click.stop>
+                <li data-level="2" v-for="resource_2 in resource.children">
+
+                    <a
+                            :href="resource_2.url"
+                            :id="'menu_manageruserCenter_'+resource_2.id"
+                            haschild="false"
+                    >
+                        <i class="menu-icon " :class="resource_2.icon"></i>
+                        <span class="menu-text"
+                        > {{resource_2.name}} </span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+            </ul>
+        </li>
+
+    </ul><!-- /.nav-list -->
+</div>
+<div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+    <i class="ace-icon fa fa-angle-double-left" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
+</div>
+
+<script type="text/javascript">
+    let vm = new Vue({
+        el:'#menu',
+        data:{
+            resources:[], //已授权权限
+            currIndex:null  //当前选中的元素
+        },
+        methods:{
+            /**
+             * 1.利用ztree功能将权限集合转换成多维数组
+             * 2.vue遍历/递归遍历生成节点
+             */
+            initResources:function () {
+                let setting={
+                    data:{
+                        simpleData:{
+                            enable:true,
+                            pIdKey:'parentId'
+                        }
+                    }
+                }
+                let treeObj = $.fn.zTree.init($('#ztree'),setting,this.resources);
+
+                this.resources = treeObj.getNodes();//转换成多维结构
+                treeObj.destroy();//销毁树对象
+
+                //遍历权限菜单，生成默认的下来标记
+                for (let i = 0; i < this.resources.length; i++) {
+                    // this.resources[i].arrow=true;//默认向下.
+                    /*
+                    由于 JavaScript 的限制，Vue 不能检测数组和对象的变化
+                    对于对象
+                    Vue 无法检测 property 的添加或移除。由于 Vue 会在初始化实例时对 property 执行
+                    getter/setter 转化，所以 property 必须在 data 对象上存在才能让 Vue 将它转换为
+                    响应式的。例如：
+                    var vm = new Vue({
+                      data:{
+                        a:1
+                      }
+                    })
+                    // `vm.a` 是响应式的
+                    vm.b = 2
+                    // `vm.b` 是非响应式的
+
+                    对于已经创建的实例，Vue 不允许动态添加根级别的响应式 property。但是，
+                    可以使用 Vue.set(object, propertyName, value) 方法向嵌套对象添加响应式 property
+                    可以使用 vm.$set 实例方法：
+                     this.$set(object, propertyName, value) 方法向嵌套对象添加响应式 property
+                    */
+                    // debugger;
+                    this.$set(this.resources[i], 'arrow', true)
+                }
+
+
+            },
+            changeArrow:function (resource,index) {
+                // debugger;
+                // debugger;
+                // resource.arrow = !resource.arrow;
+                if(resource.arrow=='up'){
+                    resource.arrow='down';
+                }else{
+                    resource.arrow='up';
+                }
+
+                //当前标记  如果没有值  点击则时展开  需要赋值
+
+                //如果有值  点击则是收起   需要去除  值
+                /* if(this.currIndex!=null){
+                     this.currIndex=null;
+                 }else{
+                     this.currIndex = index;
+                 }*/
+
+
+            }
+        },
+        mounted:function () {
+
+        },
+        created:function () {
+            let userResource = sessionStorage.getItem("userResource");
+            this.resources= JSON.parse(userResource);
+            this.initResources();
+        },
+        updated:function () {
+            // debugger;
+            // console.log(this)
+        }
+
+    })
+
+</script>
